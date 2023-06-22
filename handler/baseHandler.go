@@ -11,5 +11,5 @@ type BaseStreamHandler interface {
 	initHandler(protocolID string)
 	GetProtocolID() string
 	HandleReceivedStream(stream network.Stream)
-	SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) (error, []string)
+	SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string)
 }

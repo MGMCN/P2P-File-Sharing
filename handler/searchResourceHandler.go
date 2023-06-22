@@ -76,63 +76,73 @@ func (s *SearchHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (s *SearchHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) (error, []string) {
-	var err error
+func (s *SearchHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+	var errs []error
 	var stream network.Stream
+	var infos queryInfo
 	var offlineNodes []string
-	if len(queryInfos) == 0 {
-		log.Println("Missing parameters")
-	} else {
-		infos := queryInfo{
+	if len(queryInfos) == 1 {
+		infos = queryInfo{
+			Command: "search",
+			Keyword: "all",
+		}
+	} else if len(queryInfos) > 1 {
+		infos = queryInfo{
 			Command: "search",
 			Keyword: queryInfos[0],
 		}
+	}
 
-		jsonData, err := json.Marshal(infos)
-		if err != nil {
-			log.Printf("json.Marshal error:%s", err)
-		} else {
-			for _, p := range queryNodes {
-				if err = host.Connect(ctx, p); err != nil {
-					log.Printf("Connection failed:%s", err)
-					offlineNodes = append(offlineNodes, p.ID.String())
-					continue
-				}
+	jsonData, err := json.Marshal(infos)
+	if err != nil {
+		errs = append(errs, err)
+		log.Printf("json.Marshal error:%s", err)
+	} else {
+		for _, p := range queryNodes {
+			//log.Println("Try connect -> ", p)
+			err = nil
+			if err = host.Connect(ctx, p); err != nil {
+				log.Printf("Connection failed:failed to dial %s", p.ID.String())
+				offlineNodes = append(offlineNodes, p.ID.String())
+				errs = append(errs, err)
+				continue
+			}
 
-				// Open a stream, this stream will be handled by HandleReceivedStream on the other end
-				stream, err = host.NewStream(ctx, p.ID, protocol.ID(s.GetProtocolID()))
-				if err != nil {
-					log.Printf("Stream open failed:%s", err)
-				} else {
-					go func(stream network.Stream) {
-						rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+			// Open a stream, this stream will be handled by HandleReceivedStream on the other end
+			stream, err = host.NewStream(ctx, p.ID, protocol.ID(s.GetProtocolID()))
+			if err != nil {
+				errs = append(errs, err)
+				log.Printf("Stream open failed:%s", err)
+			} else {
+				go func(stream network.Stream) {
+					rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
-						wg := sync.WaitGroup{}
-						wg.Add(2)
-						go func() {
-							defer wg.Done()
-							s.writeData(rw, jsonData)
-							s.writeData(rw, s.endMarker)
-						}()
-						go func() {
-							defer wg.Done()
-							s.readData(rw, false)
-						}()
-						wg.Wait()
+					wg := sync.WaitGroup{}
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						s.writeData(rw, jsonData)
+						s.writeData(rw, s.endMarker)
+					}()
+					go func() {
+						defer wg.Done()
+						s.readData(rw, false)
+					}()
+					wg.Wait()
 
-						err = stream.Close()
-						if err != nil {
-							log.Println("Error closing stream:", err)
-						} else {
-							//log.Println("Closing stream")
-						}
-					}(stream)
-				}
+					err = stream.Close()
+					if err != nil {
+						errs = append(errs, err)
+						log.Println("Error closing stream:", err)
+					} else {
+						//log.Println("Closing stream")
+					}
+				}(stream)
 			}
 		}
 	}
 
-	return err, offlineNodes
+	return errs, offlineNodes
 }
 
 func (s *SearchHandler) readData(rw *bufio.ReadWriter, received bool) {
@@ -176,7 +186,7 @@ func (s *SearchHandler) readData(rw *bufio.ReadWriter, received bool) {
 				// do something
 				//log.Printf("\x1b[32m%s\x1b[0m", queryInfos.Keyword)
 			} else {
-				log.Println("\x1b[32mUpdateOthersSharedResources\x1b[0m")
+				log.Printf("\x1b[32mUpdateOthersSharedResources from %s\x1b[0m", sharedInfos.Id)
 				s.cache.UpdateOthersSharedResources(sharedInfos.Resources, sharedInfos.Id)
 				// test
 				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("a.txt"))

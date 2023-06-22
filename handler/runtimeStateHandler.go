@@ -30,8 +30,8 @@ func (s *StateHandler) GetProtocolID() string {
 func (s *StateHandler) HandleReceivedStream(stream network.Stream) {
 }
 
-func (s *StateHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) (error, []string) {
-	var err error
+func (s *StateHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+	var errs []error
 	var offlineNodes []string
 	if len(queryInfos) == 0 {
 		log.Println("Missing parameters")
@@ -51,5 +51,5 @@ func (s *StateHandler) SendRequest(ctx context.Context, host host.Host, queryNod
 		}
 	default:
 	}
-	return err, offlineNodes
+	return errs, offlineNodes
 }

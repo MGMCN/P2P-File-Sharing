@@ -41,19 +41,37 @@ func (c *Cache) InitCache(ourSharedDirectory string) error {
 }
 
 func (c *Cache) RemoveOfflineNodesSharedResources(peerIDList []string) {
+	c.oMutex.Lock()
+	defer c.oMutex.Unlock()
 
+	for _, offlinePeerID := range peerIDList {
+		for resource, onlinePeersList := range c.othersSharedResources {
+			var foundIndex int
+			var found bool
+			for index, onlinePeerID := range onlinePeersList {
+				if offlinePeerID == onlinePeerID {
+					found = true
+					foundIndex = index
+					break
+				}
+			}
+			if found {
+				c.othersSharedResources[resource] = append(c.othersSharedResources[resource][:foundIndex], c.othersSharedResources[resource][foundIndex+1:]...)
+			}
+		}
+	}
 }
 
 func (c *Cache) UpdateOthersSharedResources(resources []string, peerID string) {
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
-
 	for _, resource := range resources {
 		found := false
 		// We should use set
 		for _, storedPeerID := range c.othersSharedResources[resource] {
 			if storedPeerID == peerID {
 				found = true
+				break
 			}
 		}
 		if !found {

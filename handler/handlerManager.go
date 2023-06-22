@@ -36,12 +36,12 @@ func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
 func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
 	switch command {
 	//case "echo":
-	//	log.Println("Get echo sender")
-	//	return m.handlers["/echo/0.0.1"]
+	//log.Println("Get echo sender")
+	//return m.handlers["/echo/0.0.1"]
 	case "search":
 		//log.Println("Get search sender")
 		return m.handlers["/search/0.0.1"]
-	case "state":
+	case "list":
 		//log.Println("Get state sender")
 		return m.handlers["/state/0.0.1"]
 	default:

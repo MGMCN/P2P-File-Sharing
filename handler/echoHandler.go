@@ -52,14 +52,16 @@ func (e *EchoHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (e *EchoHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) (error, []string) {
-	var err error
+func (e *EchoHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
 	for _, p := range queryNodes {
+		var err error
 		if err = host.Connect(ctx, p); err != nil {
 			log.Printf("Connection failed:%s", err)
 			offlineNodes = append(offlineNodes, p.ID.String())
+			errs = append(errs, err)
 			continue
 		}
 
@@ -67,6 +69,7 @@ func (e *EchoHandler) SendRequest(ctx context.Context, host host.Host, queryNode
 		stream, err = host.NewStream(ctx, p.ID, protocol.ID(e.GetProtocolID()))
 		go func(stream network.Stream) {
 			if err != nil {
+				errs = append(errs, err)
 				log.Printf("Stream open failed:%s", err)
 			} else {
 				rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
@@ -84,6 +87,7 @@ func (e *EchoHandler) SendRequest(ctx context.Context, host host.Host, queryNode
 
 				err = stream.Close()
 				if err != nil {
+					errs = append(errs, err)
 					log.Println("Error closing stream:", err)
 				} else {
 					//log.Println("Closing stream")
@@ -91,7 +95,7 @@ func (e *EchoHandler) SendRequest(ctx context.Context, host host.Host, queryNode
 			}
 		}(stream)
 	}
-	return err, offlineNodes
+	return errs, offlineNodes
 }
 
 func (e *EchoHandler) readData(rw *bufio.ReadWriter) {
