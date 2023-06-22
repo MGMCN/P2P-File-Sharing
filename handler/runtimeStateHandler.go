@@ -33,9 +33,6 @@ func (s *StateHandler) HandleReceivedStream(stream network.Stream) {
 func (s *StateHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
 	var errs []error
 	var offlineNodes []string
-	if len(queryInfos) == 0 {
-		log.Println("Missing parameters")
-	}
 	switch queryInfos[0] {
 	case "list":
 		ourSharedResources := s.cache.GetSharedResourcesFromCache()

@@ -100,7 +100,6 @@ func (s *SearchHandler) SendRequest(ctx context.Context, host host.Host, queryNo
 	} else {
 		for _, p := range queryNodes {
 			//log.Println("Try connect -> ", p)
-			err = nil
 			if err = host.Connect(ctx, p); err != nil {
 				log.Printf("Connection failed:failed to dial %s", p.ID.String())
 				offlineNodes = append(offlineNodes, p.ID.String())
