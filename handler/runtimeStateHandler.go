@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"github.com/MGMCN/P2PFileSharing/storage"
+	"github.com/MGMCN/P2PFileSharing/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -11,7 +11,7 @@ import (
 
 type StateHandler struct {
 	protocolID string
-	cache      *storage.Cache
+	cache      *runtime.Cache
 }
 
 func NewStateHandler() *StateHandler {
@@ -20,7 +20,7 @@ func NewStateHandler() *StateHandler {
 
 func (s *StateHandler) initHandler(protocolID string) {
 	s.protocolID = protocolID
-	s.cache = storage.GetCacheInstance()
+	s.cache = runtime.GetCacheInstance()
 }
 
 func (s *StateHandler) GetProtocolID() string {

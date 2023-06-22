@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/MGMCN/P2PFileSharing/storage"
+	"github.com/MGMCN/P2PFileSharing/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -16,7 +16,7 @@ import (
 
 type SearchHandler struct {
 	protocolID string
-	cache      *storage.Cache
+	cache      *runtime.Cache
 	endMarker  []byte
 }
 
@@ -37,7 +37,7 @@ func NewSearchHandler() *SearchHandler {
 func (s *SearchHandler) initHandler(protocolID string) {
 	s.protocolID = protocolID
 	s.endMarker = []byte("END")
-	s.cache = storage.GetCacheInstance()
+	s.cache = runtime.GetCacheInstance()
 }
 
 func (s *SearchHandler) GetProtocolID() string {

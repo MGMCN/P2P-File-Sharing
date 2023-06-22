@@ -6,7 +6,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/MGMCN/P2PFileSharing/handler"
-	"github.com/MGMCN/P2PFileSharing/storage"
+	"github.com/MGMCN/P2PFileSharing/runtime"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -33,7 +33,7 @@ type p2pNode struct {
 	runtimeErrChan     chan error
 	mutex              *sync.Mutex
 	ourSharedDirectory string
-	cache              *storage.Cache
+	cache              *runtime.Cache
 }
 
 func Newp2pNode() *p2pNode {
@@ -88,7 +88,7 @@ func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, list
 }
 
 func (p *p2pNode) initCacheStorage() error {
-	p.cache = storage.GetCacheInstance()
+	p.cache = runtime.GetCacheInstance()
 	err := p.cache.InitCache(p.ourSharedDirectory)
 	return err
 }

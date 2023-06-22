@@ -25,3 +25,6 @@ go.work
 
 # MacOS
 .DS_Store
+
+# go build output
+p2pnode
