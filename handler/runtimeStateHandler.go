@@ -44,7 +44,8 @@ func (s *StateHandler) SendRequest(ctx context.Context, host host.Host, queryNod
 		for _, resource := range ourSharedResources {
 			resources += " | " + resource
 		}
-		log.Printf("%-15s | %s\n", "Resources", "Peers")
+		log.Printf("We share the following resources:%s\n", resources)
+		log.Printf("%-15s | %s\n", "Resource", "Peers")
 		for resourceName, peerIDList := range OthersSharedResourcesMap {
 			log.Printf("%-15s | %s\n", resourceName, peerIDList)
 		}
