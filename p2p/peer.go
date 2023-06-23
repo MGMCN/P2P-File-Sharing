@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"github.com/MGMCN/P2PFileSharing/cli"
 	"github.com/MGMCN/P2PFileSharing/handler"
 	"github.com/MGMCN/P2PFileSharing/runtime"
 	"github.com/libp2p/go-libp2p"
@@ -34,6 +35,7 @@ type p2pNode struct {
 	mutex              *sync.Mutex
 	ourSharedDirectory string
 	cache              *runtime.Cache
+	cli                *cli.RuntimeChecker
 }
 
 func Newp2pNode() *p2pNode {
@@ -76,6 +78,7 @@ func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, list
 				if err != nil {
 					log.Printf("initCacheStorage error!\n")
 				} else {
+					p.initCli()
 					p.bindReceiverHandler()
 					go p.pollingNodeJoinListener()
 					go p.pollingStdinCommandListener()
@@ -91,6 +94,11 @@ func (p *p2pNode) initCacheStorage() error {
 	p.cache = runtime.GetCacheInstance()
 	err := p.cache.InitCache(p.ourSharedDirectory)
 	return err
+}
+
+func (p *p2pNode) initCli() {
+	p.cli = cli.NewRuntimeChecker()
+	p.cli.InitRuntimeChecker()
 }
 
 func (p *p2pNode) pollingNodeJoinListener() {
@@ -132,21 +140,25 @@ func (p *p2pNode) startCommandExecutor() {
 	for command := range p.commandChan {
 		commands := strings.Split(command, " ")
 		if commands[0] != "" {
-			senderHandler := p.handlerManager.GetSenderHandler(commands[0])
-			if senderHandler != nil {
-				p.mutex.Lock()
-				tempOnlineNodes := p.onlineNodes
-				p.mutex.Unlock()
-				go func() {
-					errs, offlineNodesID := senderHandler.SendRequest(p.ctx, p.peerHost, tempOnlineNodes, commands)
-					if len(errs) != 0 {
-						log.Printf("Some errors occurred while executing %s\n", commands[0])
-					}
-					if len(offlineNodesID) != 0 {
-						p.removeOfflineNodes(offlineNodesID)
-						p.removeOfflineNodesResources(offlineNodesID)
-					}
-				}()
+			if commands[0] == "command" {
+				p.cli.ExecuteCommand(commands)
+			} else {
+				senderHandler := p.handlerManager.GetSenderHandler(commands[0])
+				if senderHandler != nil {
+					p.mutex.Lock()
+					tempOnlineNodes := p.onlineNodes
+					p.mutex.Unlock()
+					go func() {
+						errs, offlineNodesID := senderHandler.SendRequest(p.ctx, p.peerHost, tempOnlineNodes, commands)
+						if len(errs) != 0 {
+							log.Printf("Some errors occurred while executing %s\n", commands[0])
+						}
+						if len(offlineNodesID) != 0 {
+							p.removeOfflineNodes(offlineNodesID)
+							p.removeOfflineNodesResources(offlineNodesID)
+						}
+					}()
+				}
 			}
 		}
 	}

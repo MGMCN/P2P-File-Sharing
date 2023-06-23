@@ -16,11 +16,6 @@ func (m *Manager) InitHandlerManager() {
 	//echoHandler.initHandler(echoProtocolID)
 	//m.handlers[echoProtocolID] = echoHandler
 
-	stateHandler := NewStateHandler()
-	stateProtocolID := "/state/0.0.1"
-	stateHandler.initHandler(stateProtocolID)
-	m.handlers[stateProtocolID] = stateHandler
-
 	searchHandler := NewSearchHandler()
 	searchProtocolID := "/search/0.0.1"
 	searchHandler.initHandler(searchProtocolID)
@@ -41,9 +36,6 @@ func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
 	case "search":
 		//log.Println("Get search sender")
 		return m.handlers["/search/0.0.1"]
-	case "list":
-		//log.Println("Get state sender")
-		return m.handlers["/state/0.0.1"]
 	default:
 		//log.Println("Get default sender and do nothing")
 	}

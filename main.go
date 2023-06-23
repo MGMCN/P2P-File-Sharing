@@ -32,6 +32,7 @@ func main() {
 	p2pNode := p2p.Newp2pNode()
 	err = p2pNode.InitP2PNode(ctx, cfg.RendezvousString, cfg.listenHost, cfg.listenPort, cfg.sharedDirectory, runtimeErrChan)
 	if err != nil {
+		log.Println("InitP2PNode error: node ends gracefully")
 		os.Exit(1)
 	} else {
 		log.Printf("Peer listening on: %s with port: %d\n", cfg.listenHost, cfg.listenPort)
