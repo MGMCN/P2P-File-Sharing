@@ -76,7 +76,7 @@ func (s *SearchHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (s *SearchHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (s *SearchHandler) OpenStreamAndSendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
 	var errs []error
 	var stream network.Stream
 	var infos queryInfo

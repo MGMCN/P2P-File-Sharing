@@ -149,7 +149,7 @@ func (p *p2pNode) startCommandExecutor() {
 					tempOnlineNodes := p.onlineNodes
 					p.mutex.Unlock()
 					go func() {
-						errs, offlineNodesID := senderHandler.SendRequest(p.ctx, p.peerHost, tempOnlineNodes, commands)
+						errs, offlineNodesID := senderHandler.OpenStreamAndSendRequest(p.ctx, p.peerHost, tempOnlineNodes, commands)
 						if len(errs) != 0 {
 							log.Printf("Some errors occurred while executing %s\n", commands[0])
 						}

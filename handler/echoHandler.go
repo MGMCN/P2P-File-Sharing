@@ -52,7 +52,7 @@ func (e *EchoHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (e *EchoHandler) SendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (e *EchoHandler) OpenStreamAndSendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
