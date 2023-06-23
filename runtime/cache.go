@@ -7,10 +7,20 @@ import (
 	"sync"
 )
 
+type FileInfo struct {
+	FileName string
+	FileSize int64
+}
+
+type OtherSharedFileInfo struct {
+	SharedFileInfo FileInfo
+	SharedPeers    []string
+}
+
 type Cache struct {
 	ourSharedDirectory    string
-	ourSharedResources    []string
-	othersSharedResources map[string][]string // Resource name -> Peer list
+	ourSharedResources    []FileInfo
+	othersSharedResources map[string]OtherSharedFileInfo // Resource name -> Peer list
 	mutex                 *sync.Mutex
 	oMutex                *sync.Mutex
 }
@@ -32,7 +42,7 @@ func (c *Cache) InitCache(ourSharedDirectory string) error {
 	c.ourSharedDirectory = ourSharedDirectory
 	c.mutex = new(sync.Mutex)
 	c.oMutex = new(sync.Mutex)
-	c.othersSharedResources = make(map[string][]string)
+	c.othersSharedResources = make(map[string]OtherSharedFileInfo)
 	err := c.ReadSharedResourcesIntoCache()
 	if err != nil {
 		log.Printf("ReadSharedResourcesIntoCache error:%s\n", err)
@@ -45,10 +55,10 @@ func (c *Cache) RemoveOfflineNodesSharedResources(peerIDList []string) {
 	defer c.oMutex.Unlock()
 
 	for _, offlinePeerID := range peerIDList {
-		for resource, onlinePeersList := range c.othersSharedResources {
+		for resourceName, othersSharedResourcesInfo := range c.othersSharedResources {
 			var foundIndex int
 			var found bool
-			for index, onlinePeerID := range onlinePeersList {
+			for index, onlinePeerID := range othersSharedResourcesInfo.SharedPeers {
 				if offlinePeerID == onlinePeerID {
 					found = true
 					foundIndex = index
@@ -56,31 +66,37 @@ func (c *Cache) RemoveOfflineNodesSharedResources(peerIDList []string) {
 				}
 			}
 			if found {
-				c.othersSharedResources[resource] = append(c.othersSharedResources[resource][:foundIndex], c.othersSharedResources[resource][foundIndex+1:]...)
+				othersSharedResourcesInfo.SharedPeers = append(othersSharedResourcesInfo.SharedPeers[:foundIndex], othersSharedResourcesInfo.SharedPeers[foundIndex+1:]...)
+				c.othersSharedResources[resourceName] = othersSharedResourcesInfo
 			}
 		}
 	}
 }
 
-func (c *Cache) UpdateOthersSharedResources(resources []string, peerID string) {
+func (c *Cache) UpdateOthersSharedResources(resources []FileInfo, peerID string) {
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
 	for _, resource := range resources {
 		found := false
 		// We should use set
-		for _, storedPeerID := range c.othersSharedResources[resource] {
+		othersSharedResourcesInfo := c.othersSharedResources[resource.FileName]
+		for _, storedPeerID := range othersSharedResourcesInfo.SharedPeers {
 			if storedPeerID == peerID {
 				found = true
 				break
 			}
 		}
 		if !found {
-			c.othersSharedResources[resource] = append(c.othersSharedResources[resource], peerID)
+			othersSharedResourcesInfo.SharedFileInfo.FileName = resource.FileName
+			othersSharedResourcesInfo.SharedFileInfo.FileSize = resource.FileSize
+			//
+			othersSharedResourcesInfo.SharedPeers = append(othersSharedResourcesInfo.SharedPeers, peerID)
+			c.othersSharedResources[resource.FileName] = othersSharedResourcesInfo
 		}
 	}
 }
 
-func (c *Cache) GetOthersSharedResourcesPeerIDList() map[string][]string {
+func (c *Cache) GetOthersSharedResourcesPeerIDList() map[string]OtherSharedFileInfo {
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
 	return c.othersSharedResources
@@ -90,21 +106,26 @@ func (c *Cache) GetOthersSharedResourcesPeerIDListFilterByResourceName(resourceN
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
 
-	return c.othersSharedResources[resourceName]
+	return c.othersSharedResources[resourceName].SharedPeers
 }
 
-func (c *Cache) GetSharedResourcesFromCache() []string {
+func (c *Cache) GetSharedResourcesFromCache() []FileInfo {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	return c.ourSharedResources
 }
 
-func (c *Cache) AddDownloadedResource(resourceName string) {
+func (c *Cache) AddDownloadedResource(resourceName string, resourceSize int64) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	c.ourSharedResources = append(c.ourSharedResources, resourceName)
+	resourceFile := FileInfo{
+		FileName: resourceName,
+		FileSize: resourceSize,
+	}
+
+	c.ourSharedResources = append(c.ourSharedResources, resourceFile)
 }
 
 func (c *Cache) ReadSharedResourcesIntoCache() error {
@@ -123,8 +144,11 @@ func (c *Cache) traversingResourceFolder() error {
 		}
 
 		if !info.IsDir() {
-			filename := filepath.Base(path)
-			c.ourSharedResources = append(c.ourSharedResources, filename)
+			resourceFile := FileInfo{
+				FileName: filepath.Base(path),
+				FileSize: info.Size(),
+			}
+			c.ourSharedResources = append(c.ourSharedResources, resourceFile)
 		}
 
 		return nil
