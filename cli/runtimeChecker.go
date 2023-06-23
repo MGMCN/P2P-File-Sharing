@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/MGMCN/P2PFileSharing/runtime"
 	"log"
 )
@@ -27,13 +28,16 @@ func (r *RuntimeChecker) ExecuteCommand(commands []string) {
 			OthersSharedResourcesMap := r.cache.GetOthersSharedResourcesPeerIDList()
 			resources := ""
 			for _, resource := range ourSharedResources {
-				resources += " | " + resource
+				formatData := fmt.Sprintf(" | %s ( %d bytes )", resource.FileName, resource.FileSize)
+				resources += formatData
 			}
 			log.Printf("We share the following resources:%s\n", resources)
-			log.Printf("%-15s | %s\n", "Resource", "Peers")
-			for resourceName, peerIDList := range OthersSharedResourcesMap {
-				log.Printf("%-15s | %s\n", resourceName, peerIDList)
+			log.Printf("%-20s | %-14s | %s\n", "Resource", "Size", "Peers")
+			for _, othersSharedResourcesInfo := range OthersSharedResourcesMap {
+				fsize := fmt.Sprintf("%d bytes", othersSharedResourcesInfo.SharedFileInfo.FileSize)
+				log.Printf("%-20s | %-14s | %s\n", othersSharedResourcesInfo.SharedFileInfo.FileName, fsize, othersSharedResourcesInfo.SharedPeers)
 			}
+
 		default:
 		}
 	}

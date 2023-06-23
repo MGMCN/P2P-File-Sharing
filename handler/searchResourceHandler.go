@@ -26,8 +26,8 @@ type queryInfo struct {
 }
 
 type sharedInfo struct {
-	Id        string   `json:"id"`
-	Resources []string `json:"resources"`
+	Id        string             `json:"id"`
+	Resources []runtime.FileInfo `json:"resources"`
 }
 
 func NewSearchHandler() *SearchHandler {
