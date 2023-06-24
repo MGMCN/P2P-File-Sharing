@@ -12,12 +12,11 @@ import (
 )
 
 func main() {
-	help := flag.Bool("help", false, "Display Help")
-	cfg := parseFlags()
+	help, cfg := parseFlags()
 
 	if *help {
 		fmt.Printf("Peer-to-peer file sharing over LAN.\n")
-		fmt.Printf("Usage: Plz see \n")
+		flag.PrintDefaults()
 		os.Exit(0)
 	}
 
