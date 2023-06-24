@@ -177,7 +177,6 @@ func (d *DownloadHandler) writeData(rw *bufio.ReadWriter, sendData []byte) {
 }
 
 func (d *DownloadHandler) readReceivedFileChunk(rw *bufio.ReadWriter, index int, fileName string) {
-	//var jsonData []byte
 	var err error
 	var n int
 
@@ -197,19 +196,13 @@ func (d *DownloadHandler) readReceivedFileChunk(rw *bufio.ReadWriter, index int,
 				break
 			}
 		}
-		//if bytes.Equal(buffer[:n], d.endMarker) {
-		//	endFlag = true
-		//	break
-		//}
 		_, err = file.Write(buffer[:n])
 		//log.Printf("%d jsonByteData:%s\n", index, buffer[:n])
 		if err != nil {
 			log.Printf("Write buffer to %s error", tmpFilePath)
 			return
 		}
-		//jsonData = append(jsonData, buffer[:n]...)
 	}
-	//log.Printf("%d jsonByteData:%s\n", index, jsonData)
 }
 
 func (d *DownloadHandler) readQueryData(rw *bufio.ReadWriter) (error, queryResources) {
@@ -279,7 +272,6 @@ func (d *DownloadHandler) readFileAndWriteToStream(rw *bufio.ReadWriter, queryRe
 				readBytesLen = bufferSize
 				totalBytesRead += bufferSize
 			}
-			//n, err = file.Read(buffer)
 			if err != nil && err != io.EOF {
 				log.Printf("Read file error: %s\n", err)
 				return

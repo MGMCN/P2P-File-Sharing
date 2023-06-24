@@ -110,7 +110,6 @@ func (p *p2pNode) pollingNodeJoinListener() {
 	} else {
 		for {
 			peer := <-p.nodeDiscoveryChan
-			//log.Printf("%s\n", peer)
 			// Add to node list
 			p.mutex.Lock()
 			p.onlineNodes = append(p.onlineNodes, peer)
@@ -129,7 +128,6 @@ func (p *p2pNode) pollingStdinCommandListener() {
 			log.Printf("Error reading from stdin. %s\n", err)
 			p.runtimeErrChan <- err
 		} else {
-			//log.Printf("%s\n", command)
 			command = strings.TrimRight(command, "\n")
 			p.commandChan <- command
 		}

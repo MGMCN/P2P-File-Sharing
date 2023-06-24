@@ -98,7 +98,6 @@ func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []pe
 		log.Printf("json.Marshal error:%s", err)
 	} else {
 		for _, p := range queryNodes {
-			//log.Println("Try connect -> ", p)
 			if err = host.Connect(s.cache.GetContext(), p); err != nil {
 				log.Printf("Connection failed:failed to dial %s", p.ID.String())
 				offlineNodes = append(offlineNodes, p.ID.String())
@@ -152,9 +151,6 @@ func (s *SearchHandler) readData(rw *bufio.ReadWriter, received bool) {
 	var endFlag = false
 	buffer := make([]byte, 1024)
 
-	//n, err = io.ReadFull(rw, buffer)
-	//jsonData = append(jsonData, buffer[:n]...)
-
 	for {
 		n, err = rw.Read(buffer)
 		if err != nil {
@@ -181,15 +177,12 @@ func (s *SearchHandler) readData(rw *bufio.ReadWriter, received bool) {
 			// Green console colour: 	\x1b[32m
 			// Reset console colour: 	\x1b[0m
 			if received {
-				// do something
+				// We can do something here
+				// We can extract the keywords to search for a given resource
 				//log.Printf("\x1b[32m%s\x1b[0m", queryInfos.Keyword)
 			} else {
 				log.Printf("\x1b[32mUpdateOthersSharedResources from %s\x1b[0m", sharedInfos.Id)
 				s.cache.UpdateOthersSharedResources(sharedInfos.Resources, sharedInfos.Id)
-				// ptest
-				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("a.txt"))
-				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("b.txt"))
-				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("c.txt"))
 			}
 
 		}
