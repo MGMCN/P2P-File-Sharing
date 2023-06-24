@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,6 +22,7 @@ type Cache struct {
 	ourSharedDirectory    string
 	ourSharedResources    []FileInfo
 	othersSharedResources map[string]OtherSharedFileInfo // Resource name -> Peer list
+	ctx                   context.Context
 	mutex                 *sync.Mutex
 	oMutex                *sync.Mutex
 }
@@ -38,14 +40,46 @@ func GetCacheInstance() *Cache {
 	return instance
 }
 
-func (c *Cache) InitCache(ourSharedDirectory string) error {
+func (c *Cache) InitCache(ourSharedDirectory string, ctx context.Context) error {
 	c.ourSharedDirectory = ourSharedDirectory
+	c.ctx = ctx
 	c.mutex = new(sync.Mutex)
 	c.oMutex = new(sync.Mutex)
 	c.othersSharedResources = make(map[string]OtherSharedFileInfo)
 	err := c.ReadSharedResourcesIntoCache()
 	if err != nil {
 		log.Printf("ReadSharedResourcesIntoCache error:%s\n", err)
+	}
+	return err
+}
+
+func (c *Cache) ReadSharedResourcesIntoCache() error {
+	var err error
+	err = c.traversingResourceFolder()
+	return err
+}
+
+func (c *Cache) traversingResourceFolder() error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	err := filepath.Walk(c.ourSharedDirectory, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			resourceFile := FileInfo{
+				FileName: filepath.Base(path),
+				FileSize: info.Size(),
+			}
+			c.ourSharedResources = append(c.ourSharedResources, resourceFile)
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Printf("Error traversing local folders:%s\n", err)
 	}
 	return err
 }
@@ -96,6 +130,22 @@ func (c *Cache) UpdateOthersSharedResources(resources []FileInfo, peerID string)
 	}
 }
 
+func (c *Cache) AddDownloadedResource(resourceName string, resourceSize int64) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	resourceFile := FileInfo{
+		FileName: resourceName,
+		FileSize: resourceSize,
+	}
+
+	c.ourSharedResources = append(c.ourSharedResources, resourceFile)
+}
+
+func (c *Cache) GetContext() context.Context {
+	return c.ctx
+}
+
 func (c *Cache) GetOthersSharedResourcesPeerIDList() map[string]OtherSharedFileInfo {
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
@@ -114,47 +164,4 @@ func (c *Cache) GetSharedResourcesFromCache() []FileInfo {
 	defer c.mutex.Unlock()
 
 	return c.ourSharedResources
-}
-
-func (c *Cache) AddDownloadedResource(resourceName string, resourceSize int64) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	resourceFile := FileInfo{
-		FileName: resourceName,
-		FileSize: resourceSize,
-	}
-
-	c.ourSharedResources = append(c.ourSharedResources, resourceFile)
-}
-
-func (c *Cache) ReadSharedResourcesIntoCache() error {
-	var err error
-	err = c.traversingResourceFolder()
-	return err
-}
-
-func (c *Cache) traversingResourceFolder() error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	err := filepath.Walk(c.ourSharedDirectory, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() {
-			resourceFile := FileInfo{
-				FileName: filepath.Base(path),
-				FileSize: info.Size(),
-			}
-			c.ourSharedResources = append(c.ourSharedResources, resourceFile)
-		}
-
-		return nil
-	})
-	if err != nil {
-		log.Printf("Error traversing local folders:%s\n", err)
-	}
-	return err
 }

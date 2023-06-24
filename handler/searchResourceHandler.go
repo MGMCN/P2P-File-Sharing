@@ -3,7 +3,6 @@ package handler
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"github.com/MGMCN/P2PFileSharing/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -76,20 +75,20 @@ func (s *SearchHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (s *SearchHandler) OpenStreamAndSendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
 	var errs []error
 	var stream network.Stream
 	var infos queryInfo
 	var offlineNodes []string
-	if len(queryInfos) == 1 {
+	if len(queryInfos) == 2 {
 		infos = queryInfo{
 			Command: "search",
 			Keyword: "all",
 		}
-	} else if len(queryInfos) > 1 {
+	} else if len(queryInfos) > 2 {
 		infos = queryInfo{
 			Command: "search",
-			Keyword: queryInfos[0],
+			Keyword: queryInfos[2],
 		}
 	}
 
@@ -100,7 +99,7 @@ func (s *SearchHandler) OpenStreamAndSendRequest(ctx context.Context, host host.
 	} else {
 		for _, p := range queryNodes {
 			//log.Println("Try connect -> ", p)
-			if err = host.Connect(ctx, p); err != nil {
+			if err = host.Connect(s.cache.GetContext(), p); err != nil {
 				log.Printf("Connection failed:failed to dial %s", p.ID.String())
 				offlineNodes = append(offlineNodes, p.ID.String())
 				errs = append(errs, err)
@@ -108,7 +107,7 @@ func (s *SearchHandler) OpenStreamAndSendRequest(ctx context.Context, host host.
 			}
 
 			// Open a stream, this stream will be handled by HandleReceivedStream on the other end
-			stream, err = host.NewStream(ctx, p.ID, protocol.ID(s.GetProtocolID()))
+			stream, err = host.NewStream(s.cache.GetContext(), p.ID, protocol.ID(s.GetProtocolID()))
 			if err != nil {
 				errs = append(errs, err)
 				log.Printf("Stream open failed:%s", err)

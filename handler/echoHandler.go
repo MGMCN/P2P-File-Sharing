@@ -2,8 +2,8 @@ package handler
 
 import (
 	"bufio"
-	"context"
 	"fmt"
+	"github.com/MGMCN/P2PFileSharing/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -15,6 +15,7 @@ import (
 
 type EchoHandler struct {
 	protocolID string
+	cache      *runtime.Cache
 }
 
 func NewEchoHandler() *EchoHandler {
@@ -23,6 +24,7 @@ func NewEchoHandler() *EchoHandler {
 
 func (e *EchoHandler) initHandler(protocolID string) {
 	e.protocolID = protocolID
+	e.cache = runtime.GetCacheInstance()
 }
 
 func (e *EchoHandler) GetProtocolID() string {
@@ -52,13 +54,13 @@ func (e *EchoHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (e *EchoHandler) OpenStreamAndSendRequest(ctx context.Context, host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (e *EchoHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
 	for _, p := range queryNodes {
 		var err error
-		if err = host.Connect(ctx, p); err != nil {
+		if err = host.Connect(e.cache.GetContext(), p); err != nil {
 			log.Printf("Connection failed:%s", err)
 			offlineNodes = append(offlineNodes, p.ID.String())
 			errs = append(errs, err)
@@ -66,7 +68,7 @@ func (e *EchoHandler) OpenStreamAndSendRequest(ctx context.Context, host host.Ho
 		}
 
 		// Open a stream, this stream will be handled by HandleReceivedStream on the other end
-		stream, err = host.NewStream(ctx, p.ID, protocol.ID(e.GetProtocolID()))
+		stream, err = host.NewStream(e.cache.GetContext(), p.ID, protocol.ID(e.GetProtocolID()))
 		go func(stream network.Stream) {
 			if err != nil {
 				errs = append(errs, err)

@@ -92,7 +92,7 @@ func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, list
 
 func (p *p2pNode) initCacheStorage() error {
 	p.cache = runtime.GetCacheInstance()
-	err := p.cache.InitCache(p.ourSharedDirectory)
+	err := p.cache.InitCache(p.ourSharedDirectory, p.ctx)
 	return err
 }
 
@@ -140,25 +140,32 @@ func (p *p2pNode) startCommandExecutor() {
 	for command := range p.commandChan {
 		commands := strings.Split(command, " ")
 		if commands[0] != "" {
-			if commands[0] == "command" {
+			if commands[0] == "cache" {
 				p.cli.ExecuteCommand(commands)
 			} else {
-				senderHandler := p.handlerManager.GetSenderHandler(commands[0])
-				if senderHandler != nil {
-					p.mutex.Lock()
-					tempOnlineNodes := p.onlineNodes
-					p.mutex.Unlock()
-					go func() {
-						errs, offlineNodesID := senderHandler.OpenStreamAndSendRequest(p.ctx, p.peerHost, tempOnlineNodes, commands)
-						if len(errs) != 0 {
-							log.Printf("Some errors occurred while executing %s\n", commands[0])
-						}
-						if len(offlineNodesID) != 0 {
-							p.removeOfflineNodes(offlineNodesID)
-							p.removeOfflineNodesResources(offlineNodesID)
-						}
-					}()
+				// Not graceful
+				if commands[0] == "peer" && len(commands) >= 2 {
+					senderHandler := p.handlerManager.GetSenderHandler(commands[1])
+					if senderHandler != nil {
+						p.mutex.Lock()
+						tempOnlineNodes := p.onlineNodes
+						p.mutex.Unlock()
+						go func() {
+							// Should we move peerHost and onlineNodes to cache also
+							errs, offlineNodesID := senderHandler.OpenStreamAndSendRequest(p.peerHost, tempOnlineNodes, commands)
+							if len(errs) != 0 {
+								log.Printf("Some errors occurred while executing %s\n", commands)
+							}
+							if len(offlineNodesID) != 0 {
+								p.removeOfflineNodes(offlineNodesID)
+								p.removeOfflineNodesResources(offlineNodesID)
+							}
+						}()
+					}
+				} else {
+					log.Println("Missing parameters")
 				}
+
 			}
 		}
 	}

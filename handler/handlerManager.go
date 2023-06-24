@@ -11,10 +11,10 @@ func NewHandlerManager() *Manager {
 func (m *Manager) InitHandlerManager() {
 	m.handlers = make(map[string]BaseStreamHandler)
 
-	//echoHandler := NewEchoHandler()
-	//echoProtocolID := "/echo/0.0.1"
-	//echoHandler.initHandler(echoProtocolID)
-	//m.handlers[echoProtocolID] = echoHandler
+	echoHandler := NewEchoHandler()
+	echoProtocolID := "/echo/0.0.1"
+	echoHandler.initHandler(echoProtocolID)
+	m.handlers[echoProtocolID] = echoHandler
 
 	searchHandler := NewSearchHandler()
 	searchProtocolID := "/search/0.0.1"
@@ -30,9 +30,9 @@ func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
 // If you don't need a handler, just remove the case corresponding to that handler here.
 func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
 	switch command {
-	//case "echo":
-	//log.Println("Get echo sender")
-	//return m.handlers["/echo/0.0.1"]
+	case "echo":
+		//log.Println("Get echo sender")
+		return m.handlers["/echo/0.0.1"]
 	case "search":
 		//log.Println("Get search sender")
 		return m.handlers["/search/0.0.1"]

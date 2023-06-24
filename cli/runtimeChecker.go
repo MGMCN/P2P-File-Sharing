@@ -20,7 +20,8 @@ func (r *RuntimeChecker) InitRuntimeChecker() {
 
 func (r *RuntimeChecker) ExecuteCommand(commands []string) {
 	if len(commands) == 1 {
-		log.Println("Missing command")
+		// should put here ?
+		log.Println("Missing parameters")
 	} else {
 		switch commands[1] {
 		case "list":
