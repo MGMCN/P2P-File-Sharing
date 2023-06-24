@@ -4,12 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/MGMCN/P2PFileSharing/pkg/p2p"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/MGMCN/P2PFileSharing/p2p"
 )
 
 func main() {
