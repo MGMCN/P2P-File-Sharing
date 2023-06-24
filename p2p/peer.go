@@ -150,7 +150,7 @@ func (p *p2pNode) startCommandExecutor() {
 						p.mutex.Lock()
 						tempOnlineNodes := p.onlineNodes
 						p.mutex.Unlock()
-						go func() {
+						go func(tempOnlineNodes []peer.AddrInfo) {
 							// Should we move peerHost and onlineNodes to cache also
 							errs, offlineNodesID := senderHandler.OpenStreamAndSendRequest(p.peerHost, tempOnlineNodes, commands)
 							if len(errs) != 0 {
@@ -160,7 +160,7 @@ func (p *p2pNode) startCommandExecutor() {
 								p.removeOfflineNodes(offlineNodesID)
 								p.removeOfflineNodesResources(offlineNodesID)
 							}
-						}()
+						}(tempOnlineNodes)
 					}
 				} else {
 					log.Println("Missing parameters")
