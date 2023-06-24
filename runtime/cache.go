@@ -146,17 +146,21 @@ func (c *Cache) GetContext() context.Context {
 	return c.ctx
 }
 
+func (c *Cache) GetOurSharedDirectory() string {
+	return c.ourSharedDirectory
+}
+
 func (c *Cache) GetOthersSharedResourcesPeerIDList() map[string]OtherSharedFileInfo {
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
 	return c.othersSharedResources
 }
 
-func (c *Cache) GetOthersSharedResourcesPeerIDListFilterByResourceName(resourceName string) []string {
+func (c *Cache) GetOthersSharedResourcesInfosFilterByResourceName(resourceName string) OtherSharedFileInfo {
 	c.oMutex.Lock()
 	defer c.oMutex.Unlock()
 
-	return c.othersSharedResources[resourceName].SharedPeers
+	return c.othersSharedResources[resourceName]
 }
 
 func (c *Cache) GetSharedResourcesFromCache() []FileInfo {

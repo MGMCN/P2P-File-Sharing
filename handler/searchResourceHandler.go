@@ -128,10 +128,10 @@ func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []pe
 					}()
 					wg.Wait()
 
-					err = stream.Close()
-					if err != nil {
-						errs = append(errs, err)
-						log.Println("Error closing stream:", err)
+					sErr := stream.Close()
+					if sErr != nil {
+						errs = append(errs, sErr)
+						log.Println("Error closing stream:", sErr)
 					} else {
 						//log.Println("Closing stream")
 					}
@@ -186,7 +186,7 @@ func (s *SearchHandler) readData(rw *bufio.ReadWriter, received bool) {
 			} else {
 				log.Printf("\x1b[32mUpdateOthersSharedResources from %s\x1b[0m", sharedInfos.Id)
 				s.cache.UpdateOthersSharedResources(sharedInfos.Resources, sharedInfos.Id)
-				// test
+				// ptest
 				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("a.txt"))
 				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("b.txt"))
 				//log.Println(s.cache.GetOthersSharedResourcesPeerIDListFilterByResourceName("c.txt"))

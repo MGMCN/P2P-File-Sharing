@@ -20,6 +20,11 @@ func (m *Manager) InitHandlerManager() {
 	searchProtocolID := "/search/0.0.1"
 	searchHandler.initHandler(searchProtocolID)
 	m.handlers[searchProtocolID] = searchHandler
+
+	downloadHandler := NewDownloadHandler()
+	downloadProtocolID := "/download/0.0.1"
+	downloadHandler.initHandler(downloadProtocolID)
+	m.handlers[downloadProtocolID] = downloadHandler
 }
 
 func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
@@ -30,12 +35,15 @@ func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
 // If you don't need a handler, just remove the case corresponding to that handler here.
 func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
 	switch command {
-	case "echo":
-		//log.Println("Get echo sender")
-		return m.handlers["/echo/0.0.1"]
+	//case "echo":
+	//log.Println("Get echo sender")
+	//return m.handlers["/echo/0.0.1"]
 	case "search":
 		//log.Println("Get search sender")
 		return m.handlers["/search/0.0.1"]
+	case "download":
+		//log.Println("Get download sender")
+		return m.handlers["/download/0.0.1"]
 	default:
 		//log.Println("Get default sender and do nothing")
 	}
