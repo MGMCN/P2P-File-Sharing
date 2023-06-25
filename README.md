@@ -7,6 +7,7 @@ File sharing in P2P manner through LAN
 ![last_commit](https://img.shields.io/github/last-commit/MGMCN/P2P-File-Sharing?color=red&logo=github)
 ## Architecture
 Peer will start a non-blocking listener service to listen to requests from other nodes and throw them to handler, and will also start a non-blocking service to listen to input from stdin and throw these input commands to handler or cli to execute. For example, when we want to check which nodes are online, we will request the cli, which will go to the cache and get the data and tell us, or when we want to download a file, we will tell the handler about the request, and the handler will send the request for us. At the same time, handler will be called back when it receives a request from another node. All requests cannot be made without the runtime cache, which holds a lot of runtime information, such as information about the nodes currently online and information about files shared by other nodes.  
+
 <img src="image/arch.jpg" width = "80%" height = "80%"/>  
 
 ## Usage
