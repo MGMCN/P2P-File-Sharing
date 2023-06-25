@@ -1,4 +1,4 @@
-name: Auto tests for p2pnode cache
+name: cache test
 
 on:
   push:
