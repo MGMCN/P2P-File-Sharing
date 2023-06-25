@@ -17,7 +17,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
 )
 
 type p2pNode struct {
@@ -27,12 +26,10 @@ type p2pNode struct {
 	listenHost         string
 	listenPort         int
 	nodeDiscoveryChan  chan peer.AddrInfo
-	onlineNodes        []peer.AddrInfo
 	handlerManager     *handler.Manager
 	stdReader          *bufio.Reader
 	commandChan        chan string
 	runtimeErrChan     chan error
-	mutex              *sync.Mutex
 	ourSharedDirectory string
 	cache              *runtime.Cache
 	cli                *cli.RuntimeChecker
@@ -42,7 +39,7 @@ func Newp2pNode() *p2pNode {
 	return &p2pNode{}
 }
 
-func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, listenHost string, listenPort int, ourSharedDirectory string, runtimeErrChan chan error) error {
+func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, listenHost string, listenPort int, ourSharedDirectory string, runtimeErrChan chan error) (error, string) {
 	var err error
 	var prvKey crypto.PrivKey
 	var sourceMultiAddr multiaddr.Multiaddr
@@ -53,7 +50,6 @@ func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, list
 	p.ourSharedDirectory = ourSharedDirectory
 	p.runtimeErrChan = runtimeErrChan
 	p.commandChan = make(chan string, 10)
-	p.mutex = new(sync.Mutex)
 	// Creates a new RSA key pair for this host.
 	r := rand.Reader
 	prvKey, _, err = crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
@@ -87,7 +83,7 @@ func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, list
 			}
 		}
 	}
-	return err
+	return err, p.peerHost.ID().String()
 }
 
 func (p *p2pNode) initCacheStorage() error {
@@ -111,9 +107,7 @@ func (p *p2pNode) pollingNodeJoinListener() {
 		for {
 			peer := <-p.nodeDiscoveryChan
 			// Add to node list
-			p.mutex.Lock()
-			p.onlineNodes = append(p.onlineNodes, peer)
-			p.mutex.Unlock()
+			p.cache.AddOnlineNode(peer)
 		}
 	}
 }
@@ -145,20 +139,13 @@ func (p *p2pNode) startCommandExecutor() {
 				if commands[0] == "peer" && len(commands) >= 2 {
 					senderHandler := p.handlerManager.GetSenderHandler(commands[1])
 					if senderHandler != nil {
-						p.mutex.Lock()
-						tempOnlineNodes := p.onlineNodes
-						p.mutex.Unlock()
-						go func(tempOnlineNodes []peer.AddrInfo) {
-							// Should we move peerHost and onlineNodes to cache also
-							errs, offlineNodesID := senderHandler.OpenStreamAndSendRequest(p.peerHost, tempOnlineNodes, commands)
+						go func() {
+							// Should we move peerHost to cache also
+							errs := senderHandler.OpenStreamAndSendRequest(p.peerHost, commands)
 							if len(errs) != 0 {
 								log.Printf("Some errors occurred while executing %s\n", commands)
 							}
-							if len(offlineNodesID) != 0 {
-								p.removeOfflineNodes(offlineNodesID)
-								p.removeOfflineNodesResources(offlineNodesID)
-							}
-						}(tempOnlineNodes)
+						}()
 					}
 				} else {
 					log.Println("Missing parameters")
@@ -167,30 +154,6 @@ func (p *p2pNode) startCommandExecutor() {
 			}
 		}
 	}
-}
-
-func (p *p2pNode) removeOfflineNodesResources(offlineNodesID []string) {
-	p.cache.RemoveOfflineNodesSharedResources(offlineNodesID)
-}
-
-func (p *p2pNode) removeOfflineNodes(offlineNodesID []string) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	var updatedOnlineNodes []peer.AddrInfo
-	for _, onlineNode := range p.onlineNodes {
-		found := false
-		for _, offlineNodeID := range offlineNodesID {
-			if offlineNodeID == onlineNode.ID.String() {
-				log.Printf("Found %s offline\n", offlineNodeID)
-				found = true
-				break
-			}
-		}
-		if !found {
-			updatedOnlineNodes = append(updatedOnlineNodes, onlineNode)
-		}
-	}
-	p.onlineNodes = updatedOnlineNodes
 }
 
 // Not graceful

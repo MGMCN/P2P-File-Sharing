@@ -6,7 +6,6 @@ import (
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"log"
 	"strings"
@@ -54,14 +53,15 @@ func (e *EchoHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (e *EchoHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (e *EchoHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
+	queryNodes := e.cache.GetOnlineNodes()
 	for _, p := range queryNodes {
 		var err error
 		if err = host.Connect(e.cache.GetContext(), p); err != nil {
-			log.Printf("Connection failed:%s", err)
+			log.Printf("Connection failed:failed to dial %s", p.ID.String())
 			offlineNodes = append(offlineNodes, p.ID.String())
 			errs = append(errs, err)
 			continue
@@ -97,7 +97,8 @@ func (e *EchoHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []peer
 			}
 		}(stream)
 	}
-	return errs, offlineNodes
+	e.cache.RemoveOfflineNodes(offlineNodes)
+	return errs
 }
 
 func (e *EchoHandler) readData(rw *bufio.ReadWriter) {

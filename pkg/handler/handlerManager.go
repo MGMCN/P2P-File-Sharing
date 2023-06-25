@@ -35,9 +35,9 @@ func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
 // If you don't need a handler, just remove the case corresponding to that handler here.
 func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
 	switch command {
-	//case "echo":
-	//log.Println("Get echo sender")
-	//return m.handlers["/echo/0.0.1"]
+	case "echo":
+		//log.Println("Get echo sender")
+		return m.handlers["/echo/0.0.1"]
 	case "search":
 		//log.Println("Get search sender")
 		return m.handlers["/search/0.0.1"]
