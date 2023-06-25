@@ -131,7 +131,7 @@ func (c *Cache) traversingResourceFolder() error {
 			return err
 		}
 
-		if !info.IsDir() {
+		if !info.IsDir() && filepath.Dir(path)+"/" == c.ourSharedDirectory {
 			resourceFile := FileInfo{
 				FileName: filepath.Base(path),
 				FileSize: info.Size(),
