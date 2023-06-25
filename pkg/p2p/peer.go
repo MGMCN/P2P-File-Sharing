@@ -164,3 +164,14 @@ func (p *p2pNode) bindReceiverHandler() {
 		p.peerHost.SetStreamHandler(protocol.ID(handler.GetProtocolID()), handler.HandleReceivedStream)
 	}
 }
+
+// Leave Not graceful
+func (p *p2pNode) Leave() {
+	commands := make([]string, 0)
+	commands = append(commands, "peer", "leave")
+	senderHandler := p.handlerManager.GetSenderHandler("leave")
+	errs := senderHandler.OpenStreamAndSendRequest(p.peerHost, commands)
+	if len(errs) != 0 {
+		log.Printf("Some errors occurred while executing %s\n", commands)
+	}
+}

@@ -25,6 +25,11 @@ func (m *Manager) InitHandlerManager() {
 	downloadProtocolID := "/download/0.0.1"
 	downloadHandler.initHandler(downloadProtocolID)
 	m.handlers[downloadProtocolID] = downloadHandler
+
+	leaveHandler := NewLeaveHandler()
+	leaveProtocolID := "/leave/0.0.1"
+	leaveHandler.initHandler(leaveProtocolID)
+	m.handlers[leaveProtocolID] = leaveHandler
 }
 
 func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
@@ -44,6 +49,9 @@ func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
 	case "download":
 		//log.Println("Get download sender")
 		return m.handlers["/download/0.0.1"]
+	case "leave":
+		//log.Println("Get download sender")
+		return m.handlers["/leave/0.0.1"]
 	default:
 		//log.Println("Get default sender and do nothing")
 	}
