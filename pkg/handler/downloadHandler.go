@@ -8,7 +8,6 @@ import (
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"io"
 	"log"
@@ -66,12 +65,13 @@ func (d *DownloadHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
 	var jsonData []byte
 	var err error
+	queryNodes := d.cache.GetOnlineNodes()
 	if len(queryInfos) < 3 {
 		log.Println("Missing parameters")
 	} else {
@@ -79,89 +79,93 @@ func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []
 		othersSharedResourcesInfos := d.cache.GetOthersSharedResourcesInfosFilterByResourceName(queryFileName)
 		sharedPeersID := othersSharedResourcesInfos.SharedPeers
 		lenOfSharedPeersIDList := len(sharedPeersID)
-		fileSize := othersSharedResourcesInfos.SharedFileInfo.FileSize
-		fileChunkSize := fileSize / int64(lenOfSharedPeersIDList)
-		log.Printf("Caculated fileChunkSize:%d bytes", fileChunkSize)
+		if lenOfSharedPeersIDList == 0 {
+			log.Println("No one has the resources we want")
+		} else {
+			fileSize := othersSharedResourcesInfos.SharedFileInfo.FileSize
+			fileChunkSize := fileSize / int64(lenOfSharedPeersIDList)
+			log.Printf("Caculated fileChunkSize:%d bytes", fileChunkSize)
 
-		downloadFinishWG := sync.WaitGroup{}
-		var startOffset int64 = 0
-		for index, peerID := range sharedPeersID {
-			if index == lenOfSharedPeersIDList-1 {
-				// last time read all
-				fileChunkSize = fileSize - startOffset
-			}
-			infos := queryResources{
-				FileName:    queryFileName,
-				StartOffset: startOffset,
-				ReadSize:    fileChunkSize,
-			}
-			//log.Printf("Request chunk info: %s\n", infos)
-			jsonData, err = json.Marshal(infos)
-			if err != nil {
-				errs = append(errs, err)
-				log.Printf("json.Marshal error:%s", err)
-			} else {
-				for _, p := range queryNodes {
-					if peerID == p.ID.String() {
-						if err = host.Connect(d.cache.GetContext(), p); err != nil {
-							log.Printf("Connection failed:failed to dial %s", p.ID.String())
-							offlineNodes = append(offlineNodes, p.ID.String())
-							errs = append(errs, err)
+			downloadFinishWG := sync.WaitGroup{}
+			var startOffset int64 = 0
+			for index, peerID := range sharedPeersID {
+				if index == lenOfSharedPeersIDList-1 {
+					// last time read all
+					fileChunkSize = fileSize - startOffset
+				}
+				infos := queryResources{
+					FileName:    queryFileName,
+					StartOffset: startOffset,
+					ReadSize:    fileChunkSize,
+				}
+				//log.Printf("Request chunk info: %s\n", infos)
+				jsonData, err = json.Marshal(infos)
+				if err != nil {
+					errs = append(errs, err)
+					log.Printf("json.Marshal error:%s", err)
+				} else {
+					for _, p := range queryNodes {
+						if peerID == p.ID.String() {
+							if err = host.Connect(d.cache.GetContext(), p); err != nil {
+								log.Printf("Connection failed:failed to dial %s", p.ID.String())
+								offlineNodes = append(offlineNodes, p.ID.String())
+								errs = append(errs, err)
+							}
+
+							// Open a stream, this stream will be handled by HandleReceivedStream on the other end
+							stream, err = host.NewStream(d.cache.GetContext(), p.ID, protocol.ID(d.GetProtocolID()))
+							if err != nil {
+								errs = append(errs, err)
+								log.Printf("Stream open failed:%s", err)
+							} else {
+								startOffset += fileChunkSize
+								downloadFinishWG.Add(1)
+								go func(stream network.Stream, index int, fileName string, jsonData []byte) {
+									rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+									defer downloadFinishWG.Done()
+
+									singleDownloadFinishWG := sync.WaitGroup{}
+									singleDownloadFinishWG.Add(2)
+									go func() {
+										defer singleDownloadFinishWG.Done()
+										d.writeData(rw, jsonData)
+										d.writeData(rw, d.endMarker)
+									}()
+									go func() {
+										defer singleDownloadFinishWG.Done()
+										d.readReceivedFileChunk(rw, index, fileName)
+									}()
+									singleDownloadFinishWG.Wait()
+
+									sErr := stream.Close()
+									if sErr != nil {
+										errs = append(errs, sErr)
+										log.Println("Error closing stream:", sErr)
+									} else {
+										//log.Println("Closing stream")
+									}
+									log.Printf("Received file chunk from %s", stream.Conn().RemotePeer())
+								}(stream, index, queryFileName, jsonData)
+							}
+							break
 						}
-
-						// Open a stream, this stream will be handled by HandleReceivedStream on the other end
-						stream, err = host.NewStream(d.cache.GetContext(), p.ID, protocol.ID(d.GetProtocolID()))
-						if err != nil {
-							errs = append(errs, err)
-							log.Printf("Stream open failed:%s", err)
-						} else {
-							startOffset += fileChunkSize
-							downloadFinishWG.Add(1)
-							go func(stream network.Stream, index int, fileName string, jsonData []byte) {
-								rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-								defer downloadFinishWG.Done()
-
-								singleDownloadFinishWG := sync.WaitGroup{}
-								singleDownloadFinishWG.Add(2)
-								go func() {
-									defer singleDownloadFinishWG.Done()
-									d.writeData(rw, jsonData)
-									d.writeData(rw, d.endMarker)
-								}()
-								go func() {
-									defer singleDownloadFinishWG.Done()
-									d.readReceivedFileChunk(rw, index, fileName)
-								}()
-								singleDownloadFinishWG.Wait()
-
-								sErr := stream.Close()
-								if sErr != nil {
-									errs = append(errs, sErr)
-									log.Println("Error closing stream:", sErr)
-								} else {
-									//log.Println("Closing stream")
-								}
-								log.Printf("Received file chunk from %s", stream.Conn().RemotePeer())
-							}(stream, index, queryFileName, jsonData)
-						}
-						break
 					}
 				}
 			}
-		}
-		downloadFinishWG.Wait()
+			downloadFinishWG.Wait()
 
-		err = d.mergeFile(queryFileName, lenOfSharedPeersIDList)
-		if err != nil {
-			errs = append(errs, err)
-			log.Printf("Failed to merge chunk of %s", queryFileName)
-		} else {
-			d.cache.AddDownloadedResource(queryFileName, fileSize)
-			log.Printf("Merge chunk of %s successfully", queryFileName)
+			err = d.mergeFile(queryFileName, lenOfSharedPeersIDList)
+			if err != nil {
+				errs = append(errs, err)
+				log.Printf("Failed to merge chunk of %s", queryFileName)
+			} else {
+				d.cache.AddDownloadedResource(queryFileName, fileSize)
+				log.Printf("Merge chunk of %s successfully", queryFileName)
+			}
+			d.cache.RemoveOfflineNodes(offlineNodes)
 		}
 	}
-
-	return errs, offlineNodes
+	return errs
 }
 
 func (d *DownloadHandler) writeData(rw *bufio.ReadWriter, sendData []byte) {

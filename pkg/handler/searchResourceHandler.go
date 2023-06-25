@@ -7,7 +7,6 @@ import (
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"log"
 	"sync"
@@ -75,11 +74,12 @@ func (s *SearchHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []peer.AddrInfo, queryInfos []string) ([]error, []string) {
+func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var infos queryInfo
 	var offlineNodes []string
+	queryNodes := s.cache.GetOnlineNodes()
 	if len(queryInfos) == 2 {
 		infos = queryInfo{
 			Command: "search",
@@ -138,8 +138,8 @@ func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryNodes []pe
 			}
 		}
 	}
-
-	return errs, offlineNodes
+	s.cache.RemoveOfflineNodes(offlineNodes)
+	return errs
 }
 
 func (s *SearchHandler) readData(rw *bufio.ReadWriter, received bool) {
