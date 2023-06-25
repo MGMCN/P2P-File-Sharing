@@ -1,6 +1,7 @@
 # P2PFileSharing
 File sharing in P2P manner through LAN  
 
+![image](https://img.shields.io/github/actions/workflow/status/MGMCN/P2P-File-Sharing/go_test.yml?label=test&logo=github)
 [![issue](https://img.shields.io/github/issues/MGMCN/P2P-File-Sharing?logo=github)](https://github.com/MGMCN/P2P-File-Sharing/issues?logo=github)
 [![license](https://img.shields.io/github/license/MGMCN/P2P-File-Sharing)](https://github.com/MGMCN/P2P-File-Sharing/blob/main/LICENSE)
 ![last_commit](https://img.shields.io/github/last-commit/MGMCN/P2P-File-Sharing?color=red&logo=github)
