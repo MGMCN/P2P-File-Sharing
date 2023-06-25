@@ -247,7 +247,7 @@ func (d *DownloadHandler) readFileAndWriteToStream(rw *bufio.ReadWriter, queryRe
 	readSize := queryResourcesInfo.ReadSize
 	//log.Println(fileName, startOffset, readSize)
 
-	file, err := os.Open(fileName)
+	file, err := os.Open(d.cache.GetOurSharedDirectory() + fileName)
 	if err != nil {
 		log.Printf("Can not open file: %s\n", err)
 	} else {
