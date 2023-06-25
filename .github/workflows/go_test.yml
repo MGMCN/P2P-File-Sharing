@@ -26,7 +26,7 @@ jobs:
     - name: Install Go dependencies
       shell: bash
       run: |
-        go get -u github.com/libp2p/go-libp2p@v0.28.0
+        go get -u github.com/libp2p/go-libp2p
         go mod tidy
 
     - name: build p2pnode
@@ -51,7 +51,7 @@ jobs:
       - name: Install Go dependencies
         shell: bash
         run: |
-          go get -u github.com/libp2p/go-libp2p@v0.28.0
+          go get -u github.com/libp2p/go-libp2p
           go mod tidy
 
       - name: Run test
