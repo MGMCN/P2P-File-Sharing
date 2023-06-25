@@ -44,9 +44,10 @@ func main() {
 			os.Exit(1)
 		case <-sigCh:
 			// Do something before disconnect
+			p2pNode.Leave()
 			// Finally
 			cancel()
-			log.Printf("Peer ends gracefully!\n")
+			log.Printf("Node leave gracefully\n")
 			os.Exit(0)
 		}
 	}

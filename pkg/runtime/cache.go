@@ -73,7 +73,6 @@ func (c *Cache) GetOnlineNodes() []peer.AddrInfo {
 
 func (c *Cache) RemoveOfflineNode(offlineNodeID string) {
 	c.nMutex.Lock()
-	defer c.nMutex.Unlock()
 
 	var found = false
 	var foundIndex = 0
@@ -88,6 +87,11 @@ func (c *Cache) RemoveOfflineNode(offlineNodeID string) {
 	if found {
 		c.onlineNodes = append(c.onlineNodes[:foundIndex], c.onlineNodes[foundIndex+1:]...)
 	}
+	c.nMutex.Unlock()
+
+	var offlineNodesID []string
+	offlineNodesID = append(offlineNodesID, offlineNodeID)
+	c.removeOfflineNodesSharedResources(offlineNodesID)
 }
 
 func (c *Cache) RemoveOfflineNodes(offlineNodesID []string) {
