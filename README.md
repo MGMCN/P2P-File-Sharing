@@ -130,4 +130,4 @@ hello from peer2
 ## Contributing
 Contributions must be available on a separately named branch based on the latest version of the main branch.
 ## Warning
-This project may have bugs, please use it with caution. However, I am continuously improving this project.
+This project may have bugs, please use it with caution. However, I am continuously improving this project. (ps: Although there is still a gap between this project and a real p2p application. But we have at least achieved a distributed file transfer. ☺️)
