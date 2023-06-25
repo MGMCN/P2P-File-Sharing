@@ -137,8 +137,8 @@ func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []st
 				}(stream)
 			}
 		}
+		s.cache.RemoveOfflineNodes(offlineNodes)
 	}
-	s.cache.RemoveOfflineNodes(offlineNodes)
 	return errs
 }
 
