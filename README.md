@@ -7,7 +7,7 @@ File sharing in P2P manner through LAN
 ## Usage
 Build p2pnode from source code.
 ```bash
-$ go get -u github.com/libp2p/go-libp2p@v0.28.0   
+$ go get -t github.com/libp2p/go-libp2p@v0.28.0   
 $ go mod tidy
 $ go build -o p2pnode
 ```
