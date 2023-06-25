@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 type LeaveHandler struct {
@@ -80,6 +81,7 @@ func (l *LeaveHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []str
 	}
 	wg.Wait()
 	log.Println("Node leave gracefully")
+	time.Sleep(3 * time.Second)
 	os.Exit(0)
 	return errs
 }
