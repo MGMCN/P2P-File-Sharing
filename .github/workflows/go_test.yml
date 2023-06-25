@@ -1,0 +1,55 @@
+name: Auto tests for p2pnode cache
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+    - uses: actions/setup-go@v3
+      with:
+          go-version: 1.20
+    
+    - name: Install Go dependencies
+      run: |
+        go get -t github.com/libp2p/go-libp2p@v0.28.0
+        go mod tidy
+
+    - name: build p2pnode
+      run: |
+        go build -o p2pnode
+
+  test:
+    needs: [ build ]
+    timeout-minutes: 10
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.20
+
+      - name: Install Go dependencies
+        run: |
+          go get -t github.com/libp2p/go-libp2p@v0.28.0
+          go mod tidy
+
+      - name: Run test
+        run: go test -v ./...
