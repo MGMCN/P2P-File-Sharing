@@ -84,6 +84,7 @@ peer search
 2023/06/25 11:15:29 UpdateOthersSharedResources from QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH
 cache list
 2023/06/25 11:15:32 We share the following resources: | p2pnode ( 30002322 bytes ) | peer1.txt ( 17 bytes )
+2023/06/25 11:15:32 The resources shared by other nodes are listed in the table below
 2023/06/25 11:15:32 Resource             | Size           | Peers
 2023/06/25 11:15:32 p2pnode              | 30002322 bytes | [QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH]
 2023/06/25 11:15:32 peer2.txt            | 17 bytes       | [QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH]
@@ -97,6 +98,7 @@ peer search
 2023/06/25 11:15:29 UpdateOthersSharedResources from QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH
 cache list
 2023/06/25 11:15:32 We share the following resources: | p2pnode ( 30002322 bytes ) | peer1.txt ( 17 bytes )
+2023/06/25 11:15:32 The resources shared by other nodes are listed in the table below
 2023/06/25 11:15:32 Resource             | Size           | Peers
 2023/06/25 11:15:32 p2pnode              | 30002322 bytes | [QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH]
 2023/06/25 11:15:32 peer2.txt            | 17 bytes       | [QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH]
@@ -104,6 +106,7 @@ peer download peer2.txt
 2023/06/25 11:15:45 Caculated fileChunkSize:17 bytes
 2023/06/25 11:15:45 Received file chunk from QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH
 2023/06/25 11:15:45 Merge chunk of peer2.txt successfully
+2023/06/25 11:15:45 Total download time 0.01s
 ```
 The ```peer leave``` command causes the current node to gracefully exit the LAN.
 ```bash
@@ -114,6 +117,7 @@ peer search
 2023/06/25 11:15:29 UpdateOthersSharedResources from QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH
 cache list
 2023/06/25 11:15:32 We share the following resources: | p2pnode ( 30002322 bytes ) | peer1.txt ( 17 bytes )
+2023/06/25 11:15:32 The resources shared by other nodes are listed in the table below
 2023/06/25 11:15:32 Resource             | Size           | Peers
 2023/06/25 11:15:32 p2pnode              | 30002322 bytes | [QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH]
 2023/06/25 11:15:32 peer2.txt            | 17 bytes       | [QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH]
@@ -121,6 +125,7 @@ peer download peer2.txt
 2023/06/25 11:15:45 Caculated fileChunkSize:17 bytes
 2023/06/25 11:15:45 Received file chunk from QmdixMouioQwsBxWo1Bj3US3Q5YujB1KLsY2jSa1XCbptH
 2023/06/25 11:15:45 Merge chunk of peer2.txt successfully
+2023/06/25 11:15:45 Total download time 0.01s
 peer leave
 2023/06/25 11:15:53 Node leave gracefully
 ```
