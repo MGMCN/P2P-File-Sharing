@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 type DownloadHandler struct {
@@ -71,6 +72,7 @@ func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []
 	var offlineNodes []string
 	var jsonData []byte
 	var err error
+	start := time.Now()
 	queryNodes := d.cache.GetOnlineNodes()
 	if len(queryInfos) < 3 {
 		log.Println("Missing parameters")
@@ -153,6 +155,8 @@ func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []
 				}
 			}
 			downloadFinishWG.Wait()
+			elapsed := time.Since(start)
+			seconds := elapsed.Seconds()
 
 			err = d.mergeFile(queryFileName, lenOfSharedPeersIDList)
 			if err != nil {
@@ -161,6 +165,7 @@ func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []
 			} else {
 				d.cache.AddDownloadedResource(queryFileName, fileSize)
 				log.Printf("Merge chunk of %s successfully", queryFileName)
+				log.Printf("Total download time %.2fs\n", seconds)
 			}
 			d.cache.RemoveOfflineNodes(offlineNodes)
 		}

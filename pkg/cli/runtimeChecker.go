@@ -33,10 +33,11 @@ func (r *RuntimeChecker) ExecuteCommand(commands []string) {
 				resources += formatData
 			}
 			log.Printf("We share the following resources:%s\n", resources)
-			log.Printf("%-20s | %-14s | %s\n", "Resource", "Size", "Peers")
+			log.Printf("The resources shared by other nodes are listed in the table below\n")
+			log.Printf("%-30s | %-20s | %s\n", "Resource", "Size", "Peers")
 			for _, othersSharedResourcesInfo := range OthersSharedResourcesMap {
 				fsize := fmt.Sprintf("%d bytes", othersSharedResourcesInfo.SharedFileInfo.FileSize)
-				log.Printf("%-20s | %-14s | %s\n", othersSharedResourcesInfo.SharedFileInfo.FileName, fsize, othersSharedResourcesInfo.SharedPeers)
+				log.Printf("%-30s | %-20s | %s\n", othersSharedResourcesInfo.SharedFileInfo.FileName, fsize, othersSharedResourcesInfo.SharedPeers)
 			}
 
 		default:
