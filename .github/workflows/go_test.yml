@@ -32,7 +32,7 @@ jobs:
     - name: build p2pnode
       shell: bash
       run: |
-        go build -o p2pnode
+        go build -o p2pnode ./main
 
   test:
     needs: [ build ]
