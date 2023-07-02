@@ -3,7 +3,6 @@ package handler
 import (
 	"bufio"
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
-	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"log"
@@ -42,10 +41,11 @@ func (l *LeaveHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (l *LeaveHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
+func (l *LeaveHandler) OpenStreamAndSendRequest(queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
+	host := l.cache.GetHost()
 	queryNodes := l.cache.GetOnlineNodes()
 	wg := sync.WaitGroup{}
 	for _, p := range queryNodes {

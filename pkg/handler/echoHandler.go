@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
-	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"log"
@@ -53,10 +52,11 @@ func (e *EchoHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (e *EchoHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
+func (e *EchoHandler) OpenStreamAndSendRequest(queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
+	host := e.cache.GetHost()
 	queryNodes := e.cache.GetOnlineNodes()
 	for _, p := range queryNodes {
 		var err error

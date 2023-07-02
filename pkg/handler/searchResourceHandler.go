@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
-	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"log"
@@ -74,11 +73,12 @@ func (s *SearchHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (s *SearchHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
+func (s *SearchHandler) OpenStreamAndSendRequest(queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var infos queryInfo
 	var offlineNodes []string
+	host := s.cache.GetHost()
 	queryNodes := s.cache.GetOnlineNodes()
 	if len(queryInfos) == 2 {
 		infos = queryInfo{

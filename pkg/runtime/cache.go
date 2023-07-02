@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"log"
 	"os"
@@ -20,6 +21,7 @@ type OtherSharedFileInfo struct {
 }
 
 type Cache struct {
+	peerHost              host.Host
 	onlineNodes           []peer.AddrInfo
 	ourSharedDirectory    string
 	ourSharedResources    []FileInfo
@@ -43,9 +45,10 @@ func GetCacheInstance() *Cache {
 	return instance
 }
 
-func (c *Cache) InitCache(ourSharedDirectory string, ctx context.Context) error {
+func (c *Cache) InitCache(ourSharedDirectory string, ctx context.Context, peerHost host.Host) error {
 	c.ourSharedDirectory = ourSharedDirectory
 	c.ctx = ctx
+	c.peerHost = peerHost
 	c.mutex = new(sync.Mutex)
 	c.oMutex = new(sync.Mutex)
 	c.nMutex = new(sync.Mutex)
@@ -69,6 +72,10 @@ func (c *Cache) GetOnlineNodes() []peer.AddrInfo {
 	defer c.nMutex.Unlock()
 
 	return c.onlineNodes
+}
+
+func (c *Cache) GetHost() host.Host {
+	return c.peerHost
 }
 
 func (c *Cache) RemoveOfflineNode(offlineNodeID string) {
