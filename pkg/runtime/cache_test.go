@@ -8,7 +8,7 @@ import (
 
 func addTestSamplesToCache() (*Cache, []string) {
 	cache := GetCacheInstance()
-	cache.InitCache("./", nil)
+	cache.InitCache("./", nil, nil)
 	p1 := peer.AddrInfo{ID: "peer1"}
 	p2 := peer.AddrInfo{ID: "peer2"}
 	expectedPeers := make([]string, 0)
