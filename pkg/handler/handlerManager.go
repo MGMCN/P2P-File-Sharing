@@ -1,5 +1,7 @@
 package handler
 
+import "fmt"
+
 type Manager struct {
 	handlers map[string]BaseStreamHandler
 }
@@ -8,6 +10,7 @@ func NewHandlerManager() *Manager {
 	return &Manager{}
 }
 
+// InitHandlerManager If you don't need a handler, just remove the corresponding handler here.
 func (m *Manager) InitHandlerManager() {
 	m.handlers = make(map[string]BaseStreamHandler)
 
@@ -37,23 +40,11 @@ func (m *Manager) GetHandlers() map[string]BaseStreamHandler {
 }
 
 // GetSenderHandler Not graceful.
-// If you don't need a handler, just remove the case corresponding to that handler here.
 func (m *Manager) GetSenderHandler(command string) BaseStreamHandler {
-	switch command {
-	case "echo":
-		//log.Println("Get echo sender")
-		return m.handlers["/echo/0.0.1"]
-	case "search":
-		//log.Println("Get search sender")
-		return m.handlers["/search/0.0.1"]
-	case "download":
-		//log.Println("Get download sender")
-		return m.handlers["/download/0.0.1"]
-	case "leave":
-		//log.Println("Get download sender")
-		return m.handlers["/leave/0.0.1"]
-	default:
-		//log.Println("Get default sender and do nothing")
+	handlerType := fmt.Sprintf("/%s/0.0.1", command)
+	if handler, ok := m.handlers[handlerType]; ok {
+		return handler
+	} else {
+		return nil
 	}
-	return nil
 }

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
-	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"io"
@@ -66,12 +65,13 @@ func (d *DownloadHandler) HandleReceivedStream(stream network.Stream) {
 	}
 }
 
-func (d *DownloadHandler) OpenStreamAndSendRequest(host host.Host, queryInfos []string) []error {
+func (d *DownloadHandler) OpenStreamAndSendRequest(queryInfos []string) []error {
 	var errs []error
 	var stream network.Stream
 	var offlineNodes []string
 	var jsonData []byte
 	var err error
+	host := d.cache.GetHost()
 	start := time.Now()
 	queryNodes := d.cache.GetOnlineNodes()
 	if len(queryInfos) < 3 {

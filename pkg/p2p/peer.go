@@ -88,7 +88,7 @@ func (p *p2pNode) InitP2PNode(ctx context.Context, RendezvousString string, list
 
 func (p *p2pNode) initCacheStorage() error {
 	p.cache = runtime.GetCacheInstance()
-	err := p.cache.InitCache(p.ourSharedDirectory, p.ctx)
+	err := p.cache.InitCache(p.ourSharedDirectory, p.ctx, p.peerHost)
 	return err
 }
 
@@ -140,8 +140,7 @@ func (p *p2pNode) startCommandExecutor() {
 					senderHandler := p.handlerManager.GetSenderHandler(commands[1])
 					if senderHandler != nil {
 						go func() {
-							// Should we move peerHost to cache also
-							errs := senderHandler.OpenStreamAndSendRequest(p.peerHost, commands)
+							errs := senderHandler.OpenStreamAndSendRequest(commands)
 							if len(errs) != 0 {
 								log.Printf("Some errors occurred while executing %s\n", commands)
 							}
@@ -170,7 +169,7 @@ func (p *p2pNode) Leave() {
 	commands := make([]string, 0)
 	commands = append(commands, "peer", "leave")
 	senderHandler := p.handlerManager.GetSenderHandler("leave")
-	errs := senderHandler.OpenStreamAndSendRequest(p.peerHost, commands)
+	errs := senderHandler.OpenStreamAndSendRequest(commands)
 	if len(errs) != 0 {
 		log.Printf("Some errors occurred while executing %s\n", commands)
 	}
