@@ -132,24 +132,6 @@ func (p *p2pNode) startCommandExecutor() {
 	for command := range p.commandChan {
 		commands := strings.Split(command, " ")
 		if len(commands) >= 2 {
-			//if commands[0] == "cache" {
-			//	p.cli.ExecuteCommand(commands)
-			//} else {
-			//	// Not graceful
-			//	if commands[0] == "peer" && len(commands) >= 2 {
-			//		senderHandler := p.handlerManager.GetSenderHandler(commands[1])
-			//		if senderHandler != nil {
-			//			go func() {
-			//				errs := senderHandler.OpenStreamAndSendRequest(commands)
-			//				if len(errs) != 0 {
-			//					log.Printf("Some errors occurred while executing %s\n", commands)
-			//				}
-			//			}()
-			//		}
-			//	} else {
-			//		log.Println("Missing parameters")
-			//	}
-			//}
 			p.cli.Execute(commands, p.handlerManager.GetSenderHandler(commands[1]))
 		} else {
 			log.Println("Missing parameters")
