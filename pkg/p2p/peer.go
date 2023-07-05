@@ -152,9 +152,5 @@ func (p *p2pNode) bindReceiverHandler() {
 func (p *p2pNode) Leave() {
 	commands := make([]string, 0)
 	commands = append(commands, "peer", "leave")
-	senderHandler := p.handlerManager.GetSenderHandler("leave")
-	errs := senderHandler.OpenStreamAndSendRequest(commands)
-	if len(errs) != 0 {
-		log.Printf("Some errors occurred while executing %s\n", commands)
-	}
+	p.cli.Execute(commands, p.handlerManager.GetSenderHandler(commands[1]))
 }
