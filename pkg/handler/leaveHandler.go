@@ -80,8 +80,8 @@ func (l *LeaveHandler) OpenStreamAndSendRequest(queryInfos []string) []error {
 		}
 	}
 	wg.Wait()
-	log.Println("Node leave gracefully")
 	time.Sleep(3 * time.Second)
+	log.Printf("Node leave gracefully\n")
 	os.Exit(0)
 	return errs
 }
