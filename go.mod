@@ -3,6 +3,7 @@ module github.com/MGMCN/P2PFileSharing
 go 1.20
 
 require (
+	github.com/chzyer/readline v1.5.1
 	github.com/libp2p/go-libp2p v0.28.0
 	github.com/multiformats/go-multiaddr v0.9.0
 )

@@ -1,13 +1,13 @@
 package p2p
 
 import (
-	"bufio"
 	"context"
 	"crypto/rand"
 	"fmt"
 	"github.com/MGMCN/P2PFileSharing/pkg/cli"
 	"github.com/MGMCN/P2PFileSharing/pkg/handler"
 	"github.com/MGMCN/P2PFileSharing/pkg/runtime"
+	"github.com/chzyer/readline"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -15,19 +15,19 @@ import (
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"github.com/multiformats/go-multiaddr"
 	"log"
-	"os"
 	"strings"
 )
 
 type p2pNode struct {
-	ctx                context.Context
-	peerHost           host.Host
-	RendezvousString   string
-	listenHost         string
-	listenPort         int
-	nodeDiscoveryChan  chan peer.AddrInfo
-	handlerManager     *handler.Manager
-	stdReader          *bufio.Reader
+	ctx               context.Context
+	peerHost          host.Host
+	RendezvousString  string
+	listenHost        string
+	listenPort        int
+	nodeDiscoveryChan chan peer.AddrInfo
+	handlerManager    *handler.Manager
+	//stdReader          *bufio.Reader
+	stdReader          *readline.Instance
 	commandChan        chan string
 	runtimeErrChan     chan error
 	ourSharedDirectory string
@@ -113,17 +113,33 @@ func (p *p2pNode) pollingNodeJoinListener() {
 }
 
 func (p *p2pNode) pollingStdinCommandListener() {
-	p.stdReader = bufio.NewReader(os.Stdin)
+	var err error
+	var command string
+
+	//p.stdReader = bufio.NewReader(os.Stdin)
+	p.stdReader, err = readline.New("")
+	if err != nil {
+		log.Printf("Error creating readline instance.\n")
+		p.runtimeErrChan <- err
+		return
+	}
+	defer p.stdReader.Close()
 
 	for {
-		//fmt.Printf("> ")
-		command, err := p.stdReader.ReadString('\n')
+		//command, err = p.stdReader.ReadString('\n')
+		command, err = p.stdReader.Readline()
 		if err != nil {
-			log.Printf("Error reading from stdin. %s\n", err)
+			log.Printf("Error reading from stdin.\n")
 			p.runtimeErrChan <- err
 		} else {
 			command = strings.TrimRight(command, "\n")
 			p.commandChan <- command
+
+			err = readline.AddHistory(command)
+			if err != nil {
+				log.Printf("Error AddCommandHistory.\n")
+				p.runtimeErrChan <- err
+			}
 		}
 	}
 }

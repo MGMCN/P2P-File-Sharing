@@ -36,8 +36,11 @@ func main() {
 			for {
 				select {
 				case runtimeErr := <-runtimeErrChan:
-					// We should handle this error
+					// We should handle runtime error
 					log.Printf("Runtime error occurs! %s\n", runtimeErr)
+					// Should we leave ?
+					// Not graceful !
+					p2pNode.Leave()
 				case <-sigCh:
 					p2pNode.Leave()
 				}

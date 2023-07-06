@@ -75,7 +75,7 @@ func (d *DownloadHandler) OpenStreamAndSendRequest(queryInfos []string) []error 
 	start := time.Now()
 	queryNodes := d.cache.GetOnlineNodes()
 	if len(queryInfos) < 3 {
-		log.Println("Missing parameters")
+		log.Println("Missing download file name parameter")
 	} else {
 		queryFileName := queryInfos[2]
 		othersSharedResourcesInfos := d.cache.GetOthersSharedResourcesInfosFilterByResourceName(queryFileName)
