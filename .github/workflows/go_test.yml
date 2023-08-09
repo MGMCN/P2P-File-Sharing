@@ -26,7 +26,7 @@ jobs:
     - name: Install Go dependencies
       shell: bash
       run: |
-        go get -t github.com/libp2p/go-libp2p@v0.28.0
+        go get -t github.com/libp2p/go-libp2p@v0.28.2
         go get -t github.com/chzyer/readline
         go mod tidy
 
@@ -52,7 +52,7 @@ jobs:
       - name: Install Go dependencies
         shell: bash
         run: |
-          go get -t github.com/libp2p/go-libp2p@v0.28.0
+          go get -t github.com/libp2p/go-libp2p@v0.28.2
           go get -t github.com/chzyer/readline
           go mod tidy
 
